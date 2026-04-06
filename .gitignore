@@ -1,34 +1,1654 @@
-# Gradle files
-.gradle/
-build/
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>QINGLINK 物料管理系统 - 云端版</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <script src="https://unpkg.com/@cloudbase/js-sdk@1.13.1/dist/cloudbase.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #4F46E5;
+      --primary-light: #818CF8;
+      --secondary: #10B981;
+      --accent: #F59E0B;
+      --danger: #EF4444;
+      --purple: #8B5CF6;
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --text-primary: #1E293B;
+      --text-secondary: #64748B;
+      --border: #E2E8F0;
+      --shadow: 0 1px 3px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 40px rgba(0,0,0,0.15);
+      --cat-office: #EEF2FF;
+      --cat-event: #FEF3C7;
+      --cat-electronic: #DBEAFE;
+      --cat-print: #D1FAE5;
+      --cat-furniture: #FEE2E2;
+      --cat-other: #F3E8FF;
+    }
+    body {
+      font-family: 'Noto Sans SC', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
 
-# Local configuration file (sdk path, etc)
-local.properties
+    /* ============ Login Page Styles ============ */
+    .login-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      padding: 20px;
+    }
+    .login-card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: var(--shadow-lg);
+      animation: slideUp 0.5s ease-out;
+    }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .login-logo-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      margin: 0 auto 16px;
+    }
+    .login-logo h1 {
+      font-size: 24px;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    .login-logo p {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+    .form-input {
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+    }
+    .login-btn {
+      padding: 14px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(79,70,229,0.3);
+    }
+    .login-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .login-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .login-tab {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      background: var(--bg);
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .login-tab.active {
+      background: var(--primary);
+      color: white;
+    }
+    .login-divider {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 13px;
+      margin: 10px 0;
+    }
+    .login-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
 
-# Log/OS Files
-*.log
+    /* ============ Header ============ */
+    .header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .logo h1 { font-size: 16px; font-weight: 600; }
+    .logo span { font-size: 11px; opacity: 0.8; }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .user-info:hover {
+      background: rgba(255,255,255,0.25);
+    }
+    .user-avatar {
+      width: 28px;
+      height: 28px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: var(--primary);
+    }
+    .header-menu-btn {
+      padding: 8px;
+      background: rgba(255,255,255,0.15);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      display: none;
+    }
+    .header-menu-btn svg { width: 24px; height: 24px; }
 
-# Android Studio generated files and folders
-captures/
-.externalNativeBuild/
-.cxx/
-*.aab
-*.apk
-output-metadata.json
+    /* ============ Main Navigation ============ */
+    .main-nav {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 0 16px;
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .main-nav::-webkit-scrollbar { display: none; }
+    .nav-btn {
+      padding: 14px 16px;
+      background: none;
+      border: none;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .nav-btn svg { width: 16px; height: 16px; }
+    .nav-btn::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--primary);
+      transform: scaleX(0);
+      transition: transform 0.2s;
+      border-radius: 3px 3px 0 0;
+    }
+    .nav-btn:hover { color: var(--text-primary); }
+    .nav-btn.active { color: var(--primary); }
+    .nav-btn.active::after { transform: scaleX(1); }
 
-# IntelliJ
-*.iml
-.idea/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
+    /* ============ Container ============ */
+    .container { max-width: 1600px; margin: 0 auto; padding: 16px; }
 
-# Keystore files
-*.jks
-*.keystore
+    /* ============ Page Content ============ */
+    .page { display: none; animation: fadeIn 0.3s ease-out; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-# Google Services (e.g. APIs or Firebase)
-google-services.json
+    /* ============ Summary Cards ============ */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .summary-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      animation: slideUp 0.4s ease-out backwards;
+    }
+    .summary-card:nth-child(1) { animation-delay: 0ms; }
+    .summary-card:nth-child(2) { animation-delay: 50ms; }
+    .summary-card:nth-child(3) { animation-delay: 100ms; }
+    .summary-card:nth-child(4) { animation-delay: 150ms; }
+    .summary-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+    .summary-card.primary::before { background: var(--primary); }
+    .summary-card.secondary::before { background: var(--secondary); }
+    .summary-card.accent::before { background: var(--accent); }
+    .summary-card.danger::before { background: var(--danger); }
+    .summary-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .summary-card.primary .summary-value { color: var(--primary); }
+    .summary-card.secondary .summary-value { color: var(--secondary); }
+    .summary-card.accent .summary-value { color: var(--accent); }
+    .summary-card.danger .summary-value { color: var(--danger); }
+    .summary-label { color: var(--text-secondary); font-size: 12px; }
 
-# Android Profiling
-*.hprof
+    /* ============ Quick Actions ============ */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .quick-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+    }
+    .quick-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    .quick-card h3 {
+      font-size: 14px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .quick-card h3 svg { width: 20px; height: 20px; color: var(--primary); }
+    .quick-card.orange h3 svg { color: var(--accent); }
+    .quick-card.green h3 svg { color: var(--secondary); }
+    .quick-card.purple h3 svg { color: var(--purple); }
+    .quick-card p { color: var(--text-secondary); font-size: 12px; }
+
+    /* ============ Toolbar ============ */
+    .toolbar {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: var(--shadow);
+    }
+    .toolbar-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .search-input {
+      flex: 1;
+      min-width: 120px;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    .search-input:focus { outline: none; border-color: var(--primary); }
+    .filter-select {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      background: white;
+      font-family: inherit;
+    }
+
+    /* ============ Buttons ============ */
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-light); }
+    .btn-secondary { background: white; color: var(--primary); border: 1px solid var(--primary); }
+    .btn-success { background: var(--secondary); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-purple { background: var(--purple); color: white; }
+    .btn svg { width: 16px; height: 16px; }
+    .btn-sm { padding: 6px 10px; font-size: 12px; }
+
+    /* ============ Table ============ */
+    .table-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    th {
+      background: #F8FAFC;
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    tr:hover td { background: #F8FAFC; }
+
+    /* ============ Mobile Sidebar ============ */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid var(--border);
+      padding: 8px 0;
+      z-index: 100;
+    }
+    .mobile-nav-items {
+      display: flex;
+      justify-content: space-around;
+    }
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 16px;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .mobile-nav-item.active { color: var(--primary); }
+    .mobile-nav-item svg { width: 24px; height: 24px; }
+
+    /* ============ Modal ============ */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: slideUp 0.3s ease-out;
+    }
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-header h2 { font-size: 18px; }
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: var(--bg);
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-body { padding: 20px; }
+    .modal-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    /* ============ Toast ============ */
+    .toast-container {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .toast {
+      padding: 12px 20px;
+      border-radius: 10px;
+      color: white;
+      font-size: 14px;
+      animation: slideIn 0.3s ease-out;
+      max-width: 300px;
+    }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
+    .toast.success { background: var(--secondary); }
+    .toast.error { background: var(--danger); }
+    .toast.info { background: var(--primary); }
+    .toast.warning { background: var(--accent); }
+
+    /* ============ Loading ============ */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255,255,255,0.9);
+      z-index: 400;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .loading-overlay.active { display: flex; }
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { color: var(--text-secondary); font-size: 14px; }
+
+    /* ============ Responsive ============ */
+    @media (max-width: 768px) {
+      .header { padding: 10px 16px; }
+      .logo h1 { font-size: 14px; }
+      .logo span { display: none; }
+      .header-menu-btn { display: block; }
+      .user-info span { display: none; }
+      .container { padding: 12px; padding-bottom: 80px; }
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .quick-actions { grid-template-columns: 1fr 1fr; }
+      .main-nav { display: none; }
+      .mobile-nav { display: block; }
+      .login-card { padding: 30px 20px; }
+    }
+    @media (max-width: 480px) {
+      .summary-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .summary-card { padding: 14px; }
+      .summary-value { font-size: 20px; }
+      .quick-card { padding: 14px; }
+    }
+
+    /* ============ Category Group Header ============ */
+    .category-group-header {
+      background: var(--bg);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .category-group-header:hover { background: #F1F5F9; }
+    .category-group-toggle {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s;
+    }
+    .category-group-header.collapsed .category-group-toggle { transform: rotate(-90deg); }
+    .category-group-content { display: table-row-group; }
+    .category-group-header.collapsed + * { display: none; }
+
+    /* ============ Activity Status ============ */
+    .status-badge {
+      display: inline-flex;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .status-draft { background: #F1F5F9; color: var(--text-secondary); }
+    .status-finalized { background: #D1FAE5; color: var(--secondary); }
+    .status-editing { background: #FEF3C7; color: var(--accent); }
+
+    /* ============ Activity Card ============ */
+    .activity-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: all 0.2s;
+      border-left: 4px solid var(--purple);
+    }
+    .activity-card:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .activity-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .activity-card-title { font-size: 16px; font-weight: 600; }
+    .activity-card-code { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-secondary); }
+    .activity-card-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .activity-card-meta span { display: flex; align-items: center; gap: 4px; }
+    .activity-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      margin-top: 12px;
+    }
+    .activity-card-budget { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 600; color: var(--accent); }
+
+    /* ============ Sync Indicator ============ */
+    .sync-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: var(--bg);
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .sync-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--secondary);
+    }
+    .sync-dot.syncing {
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    /* ============ Admin Panel ============ */
+    .admin-panel {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+    .admin-panel h3 { font-size: 16px; margin-bottom: 16px; }
+    .user-list { display: flex; flex-direction: column; gap: 10px; }
+    .user-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: var(--bg);
+      border-radius: 8px;
+    }
+    .user-item-info { display: flex; align-items: center; gap: 10px; }
+    .user-item-avatar {
+      width: 36px;
+      height: 36px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+    }
+    .user-item-name { font-weight: 500; }
+    .user-item-role { font-size: 12px; color: var(--text-secondary); }
+    .role-select {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text" id="loadingText">加载中...</div>
+  </div>
+
+  <!-- Login Page -->
+  <div class="login-container" id="loginPage">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="login-logo-icon">📦</div>
+        <h1>QINGLINK 物料管理系统</h1>
+        <p>云端协作版 - 手机/电脑多端访问</p>
+      </div>
+      <div class="login-tabs">
+        <button class="login-tab active" data-tab="login">登录</button>
+        <button class="login-tab" data-tab="register">注册</button>
+      </div>
+      <form class="login-form" id="loginForm">
+        <div class="form-group" id="registerFields" style="display: none;">
+          <label>姓名</label>
+          <input type="text" class="form-input" id="registerName" placeholder="请输入姓名">
+        </div>
+        <div class="form-group">
+          <label>手机号 / 邮箱</label>
+          <input type="text" class="form-input" id="loginAccount" placeholder="请输入手机号或邮箱" required>
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input type="password" class="form-input" id="loginPassword" placeholder="请输入密码" required>
+        </div>
+        <button type="submit" class="login-btn" id="loginBtn">登 录</button>
+      </form>
+      <div class="login-divider">或</div>
+      <button class="login-btn" style="background: #07C160; margin-bottom: 12px;" onclick="wechatLogin()">
+        微信快速登录
+      </button>
+      <div class="login-footer">
+        登录即表示同意 <a href="#" style="color: var(--primary);">用户协议</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="mainApp" style="display: none;">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon" onclick="triggerLogoUpload()">
+          <img id="logoImage" src="" style="display: none; width: 100%; height: 100%; object-fit: contain; border-radius: 6px;">
+          <span id="logoEmoji">📦</span>
+        </div>
+        <input type="file" id="logoUploadInput" accept="image/*" style="display: none;" onchange="handleLogoUpload(this)">
+        <div>
+          <h1>QINGLINK 物料管理</h1>
+          <span>云端协作版</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="sync-indicator">
+          <span class="sync-dot" id="syncDot"></span>
+          <span id="syncStatus">已同步</span>
+        </div>
+        <div class="user-info" onclick="showUserMenu()">
+          <div class="user-avatar" id="userAvatar">管</div>
+          <span id="userName">管理员</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Navigation -->
+    <nav class="main-nav">
+      <button class="nav-btn active" data-page="dashboard">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+        仪表盘
+      </button>
+      <button class="nav-btn" data-page="inventory">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+        库存银行
+      </button>
+      <button class="nav-btn" data-page="activity">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+        活动物资
+      </button>
+      <button class="nav-btn" data-page="admin" id="adminNavBtn" style="display: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+        管理
+      </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+      <!-- Dashboard Page -->
+      <div class="page active" id="page-dashboard">
+        <div class="summary-grid">
+          <div class="summary-card primary">
+            <div class="summary-value" id="dash-total">0</div>
+            <div class="summary-label">物料种类</div>
+          </div>
+          <div class="summary-card secondary">
+            <div class="summary-value" id="dash-stock">0</div>
+            <div class="summary-label">总库存量</div>
+          </div>
+          <div class="summary-card accent">
+            <div class="summary-value" id="dash-value">¥0</div>
+            <div class="summary-label">库存总值</div>
+          </div>
+          <div class="summary-card danger">
+            <div class="summary-value" id="dash-budget">¥0</div>
+            <div class="summary-label">活动总预算</div>
+          </div>
+        </div>
+        <div class="quick-actions">
+          <div class="quick-card" onclick="navigateTo('inventory')">
+            <h3>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+              新增品类
+            </h3>
+            <p>登记新的物料到库存银行</p>
+          </div>
+          <div class="quick-card orange" onclick="navigateTo('activity')">
+            <h3>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+              新建活动
+            </h3>
+            <p>创建新的活动物资申请</p>
+          </div>
+          <div class="quick-card green">
+            <h3>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+              Excel导入
+            </h3>
+            <p>批量导入库存或活动数据</p>
+          </div>
+          <div class="quick-card purple">
+            <h3>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              数据导出
+            </h3>
+            <p>导出库存或活动数据</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inventory Page -->
+      <div class="page" id="page-inventory">
+        <div class="toolbar">
+          <div class="toolbar-row">
+            <input type="text" class="search-input" id="inventorySearch" placeholder="搜索物资编码、品类名称...">
+            <select class="filter-select" id="categoryFilter">
+              <option value="">全部分类</option>
+            </select>
+          </div>
+          <div class="toolbar-row">
+            <button class="btn btn-primary" onclick="openAddItemModal()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+              新增品类
+            </button>
+            <button class="btn btn-secondary" onclick="document.getElementById('importInput').click()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+              导入
+            </button>
+            <button class="btn btn-secondary" onclick="exportInventory()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+              导出
+            </button>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>物资编码</th>
+                  <th>品类名称</th>
+                  <th>单位</th>
+                  <th>规格</th>
+                  <th>物资类别</th>
+                  <th>单价</th>
+                  <th>库存</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="inventoryTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Page -->
+      <div class="page" id="page-activity">
+        <div id="activityListView">
+          <div class="toolbar">
+            <div class="toolbar-row">
+              <input type="text" class="search-input" id="activitySearch" placeholder="搜索活动编号、名称...">
+            </div>
+            <div class="toolbar-row">
+              <button class="btn btn-purple" onclick="openNewActivityModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                新建活动
+              </button>
+            </div>
+          </div>
+          <div id="activityList"></div>
+        </div>
+        <div id="activityDetailView" style="display: none;">
+          <!-- Activity detail will be rendered here -->
+        </div>
+      </div>
+
+      <!-- Admin Page -->
+      <div class="page" id="page-admin">
+        <div class="admin-panel">
+          <h3>👥 用户管理</h3>
+          <div class="user-list" id="userList"></div>
+        </div>
+        <div class="admin-panel">
+          <h3>📊 数据统计</h3>
+          <div class="summary-grid">
+            <div class="summary-card primary">
+              <div class="summary-value" id="admin-users">0</div>
+              <div class="summary-label">总用户数</div>
+            </div>
+            <div class="summary-card secondary">
+              <div class="summary-value" id="admin-inventory">0</div>
+              <div class="summary-label">库存物料</div>
+            </div>
+            <div class="summary-card accent">
+              <div class="summary-value" id="admin-activities">0</div>
+              <div class="summary-label">活动总数</div>
+            </div>
+          </div>
+        </div>
+        <div class="admin-panel">
+          <h3>⚙️ 系统设置</h3>
+          <button class="btn btn-danger" onclick="logout()">退出登录</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav">
+      <div class="mobile-nav-items">
+        <button class="mobile-nav-item active" data-page="dashboard">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+          仪表盘
+        </button>
+        <button class="mobile-nav-item" data-page="inventory">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+          库存
+        </button>
+        <button class="mobile-nav-item" data-page="activity">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          活动
+        </button>
+        <button class="mobile-nav-item" data-page="admin" id="mobileAdminBtn" style="display: none;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+          管理
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Modal Overlay -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modalContent">
+      <!-- Modal content will be dynamically inserted -->
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- User Menu Modal -->
+  <div class="modal-overlay" id="userMenuModal">
+    <div class="modal" style="max-width: 300px;">
+      <div class="modal-header">
+        <h2>用户菜单</h2>
+        <button class="modal-close" onclick="closeUserMenu()">✕</button>
+      </div>
+      <div class="modal-body">
+        <button class="btn btn-danger" style="width: 100%;" onclick="logout()">退出登录</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============ CloudBase SDK ============
+    // 请替换为你的云开发环境ID
+    const CLOUDBASE_ENV_ID = 'qing-link-4gczqpx2c6afb195';
+    
+    let app = null;
+    let db = null;
+    let currentUser = null;
+    let currentUserRole = 'user'; // admin, user, readonly
+    
+    // ============ Data Storage ============
+    let inventory = [];
+    let activityRecords = [];
+    let systemConfig = {
+      categories: ['办公用品', '活动道具', '电子产品', '印刷品', '家具设备', '其他'],
+      logoIcon: null,
+      logoEmoji: '📦'
+    };
+    let users = [];
+
+    // ============ Initialize CloudBase ============
+    async function initCloudBase() {
+      showLoading('初始化云端连接...');
+      
+      try {
+        // 初始化云开发
+        app = cloudbase.init({
+          env: CLOUDBASE_ENV_ID
+        });
+        
+        // 获取 auth 实例
+        const auth = app.auth();
+        
+        // 检查登录状态
+        const loginState = await auth.getLoginState();
+        
+        if (loginState) {
+          // 已登录，获取用户信息
+          await getCurrentUser();
+          showMainApp();
+        } else {
+          // 未登录，显示登录页
+          showLoginPage();
+        }
+        
+        hideLoading();
+      } catch (error) {
+        console.error('CloudBase init error:', error);
+        hideLoading();
+        showToast('云端连接失败，请检查网络', 'error');
+        // 离线模式
+        showLoginPage();
+      }
+    }
+
+    async function getCurrentUser() {
+      const auth = app.auth();
+      currentUser = await auth.getUserInfo();
+      
+      // 从数据库获取用户角色
+      try {
+        db = app.database();
+        const res = await db.collection('users').where({
+          uid: currentUser.uid
+        }).get();
+        
+        if (res.data && res.data.length > 0) {
+          currentUserRole = res.data[0].role || 'user';
+          currentUser.displayName = res.data[0].name || currentUser.nickName || '用户';
+        } else {
+          currentUserRole = 'user';
+          currentUser.displayName = currentUser.nickName || '用户';
+        }
+      } catch (e) {
+        currentUserRole = 'user';
+        currentUser.displayName = currentUser.nickName || '用户';
+      }
+      
+      updateUserUI();
+    }
+
+    function updateUserUI() {
+      if (currentUser) {
+        document.getElementById('userName').textContent = currentUser.displayName || '用户';
+        document.getElementById('userAvatar').textContent = (currentUser.displayName || '用户').charAt(0);
+        
+        // 显示/隐藏管理员按钮
+        const isAdmin = currentUserRole === 'admin';
+        document.getElementById('adminNavBtn').style.display = isAdmin ? 'flex' : 'none';
+        document.getElementById('mobileAdminBtn').style.display = isAdmin ? 'flex' : 'none';
+      }
+    }
+
+    // ============ Auth Functions ============
+    async function signInWithEmail(email, password) {
+      showLoading('登录中...');
+      try {
+        const auth = app.auth();
+        await auth.signInWithEmailAndPassword(email, password);
+        await getCurrentUser();
+        showMainApp();
+        hideLoading();
+        showToast('登录成功', 'success');
+      } catch (error) {
+        hideLoading();
+        showToast('登录失败: ' + error.message, 'error');
+      }
+    }
+
+    async function signUpWithEmail(name, email, password) {
+      showLoading('注册中...');
+      try {
+        const auth = app.auth();
+        await auth.signUpWithEmailAndPassword(email, password);
+        
+        // 创建用户记录
+        db = app.database();
+        await db.collection('users').add({
+          data: {
+            uid: Date.now().toString(36),
+            name: name,
+            email: email,
+            role: 'user',
+            createTime: new Date().toISOString()
+          }
+        });
+        
+        // 自动登录
+        await signInWithEmail(email, password);
+        hideLoading();
+        showToast('注册成功', 'success');
+      } catch (error) {
+        hideLoading();
+        showToast('注册失败: ' + error.message, 'error');
+      }
+    }
+
+    async function signInWithWechat() {
+      showLoading('微信登录...');
+      try {
+        const auth = app.auth();
+        await auth.signInWithWxApp();
+        await getCurrentUser();
+        showMainApp();
+        hideLoading();
+        showToast('登录成功', 'success');
+      } catch (error) {
+        hideLoading();
+        showToast('微信登录失败，请使用邮箱登录', 'error');
+      }
+    }
+
+    async function logout() {
+      showLoading('退出登录...');
+      try {
+        const auth = app.auth();
+        await auth.signOut();
+        currentUser = null;
+        hideLoading();
+        showLoginPage();
+        showToast('已退出登录', 'info');
+      } catch (error) {
+        hideLoading();
+        showToast('退出失败', 'error');
+      }
+    }
+
+    // ============ UI Functions ============
+    function showLoginPage() {
+      document.getElementById('loginPage').style.display = 'flex';
+      document.getElementById('mainApp').style.display = 'none';
+    }
+
+    function showMainApp() {
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('mainApp').style.display = 'block';
+      initApp();
+    }
+
+    function showLoading(text) {
+      document.getElementById('loadingText').textContent = text || '加载中...';
+      document.getElementById('loadingOverlay').classList.add('active');
+    }
+
+    function hideLoading() {
+      document.getElementById('loadingOverlay').classList.remove('active');
+    }
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = msg;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    function showUserMenu() {
+      document.getElementById('userMenuModal').classList.add('active');
+    }
+
+    function closeUserMenu() {
+      document.getElementById('userMenuModal').classList.remove('active');
+    }
+
+    // ============ Login Form Handler ============
+    document.querySelectorAll('.login-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        const isRegister = tab.dataset.tab === 'register';
+        document.getElementById('registerFields').style.display = isRegister ? 'flex' : 'none';
+        document.getElementById('loginBtn').textContent = isRegister ? '注 册' : '登 录';
+      });
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const account = document.getElementById('loginAccount').value;
+      const password = document.getElementById('loginPassword').value;
+      const isRegister = document.querySelector('.login-tab.active').dataset.tab === 'register';
+      
+      if (isRegister) {
+        const name = document.getElementById('registerName').value;
+        if (!name) {
+          showToast('请输入姓名', 'error');
+          return;
+        }
+        await signUpWithEmail(name, account, password);
+      } else {
+        await signInWithEmail(account, password);
+      }
+    });
+
+    function wechatLogin() {
+      signInWithWechat();
+    }
+
+    // ============ Navigation ============
+    function navigateTo(page) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.mobile-nav-item').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      
+      document.querySelector(`[data-page="${page}"]`).classList.add('active');
+      document.getElementById('page-' + page).classList.add('active');
+      
+      if (page === 'inventory') renderInventory();
+      if (page === 'activity') renderActivityList();
+      if (page === 'dashboard') updateDashboard();
+      if (page === 'admin') loadAdminPanel();
+    }
+
+    document.querySelectorAll('.nav-btn, .mobile-nav-item').forEach(btn => {
+      btn.addEventListener('click', () => navigateTo(btn.dataset.page));
+    });
+
+    // ============ Data Operations ============
+    async function loadData() {
+      showLoading('加载数据...');
+      try {
+        db = app.database();
+        
+        // 加载库存
+        const invRes = await db.collection('inventory').get();
+        inventory = invRes.data || [];
+        
+        // 加载活动
+        const actRes = await db.collection('activities').get();
+        activityRecords = actRes.data || [];
+        
+        // 加载配置
+        const cfgRes = await db.collection('config').limit(1).get();
+        if (cfgRes.data && cfgRes.data.length > 0) {
+          systemConfig = cfgRes.data[0];
+        }
+        
+        // 加载用户列表（仅管理员）
+        if (currentUserRole === 'admin') {
+          const userRes = await db.collection('users').get();
+          users = userRes.data || [];
+        }
+        
+        hideLoading();
+        updateSyncStatus('synced');
+      } catch (error) {
+        console.error('Load data error:', error);
+        hideLoading();
+        showToast('数据加载失败', 'error');
+        updateSyncStatus('offline');
+      }
+    }
+
+    async function saveInventory() {
+      if (currentUserRole === 'readonly') {
+        showToast('您没有编辑权限', 'warning');
+        return;
+      }
+      updateSyncStatus('syncing');
+      try {
+        db = app.database();
+        
+        // 同步到云数据库
+        for (const item of inventory) {
+          if (item._id) {
+            await db.collection('inventory').doc(item._id).update({
+              ...item,
+              updateTime: new Date().toISOString()
+            });
+          } else {
+            const res = await db.collection('inventory').add({
+              data: {
+                ...item,
+                createTime: new Date().toISOString(),
+                updateTime: new Date().toISOString()
+              }
+            });
+            item._id = res.id;
+          }
+        }
+        
+        updateSyncStatus('synced');
+      } catch (error) {
+        console.error('Save inventory error:', error);
+        showToast('保存失败', 'error');
+        updateSyncStatus('error');
+      }
+    }
+
+    async function saveActivities() {
+      if (currentUserRole === 'readonly') {
+        showToast('您没有编辑权限', 'warning');
+        return;
+      }
+      updateSyncStatus('syncing');
+      try {
+        db = app.database();
+        
+        for (const activity of activityRecords) {
+          if (activity._id) {
+            await db.collection('activities').doc(activity._id).update({
+              ...activity,
+              updateTime: new Date().toISOString()
+            });
+          } else {
+            const res = await db.collection('activities').add({
+              data: {
+                ...activity,
+                createTime: new Date().toISOString(),
+                updateTime: new Date().toISOString()
+              }
+            });
+            activity._id = res.id;
+          }
+        }
+        
+        updateSyncStatus('synced');
+      } catch (error) {
+        console.error('Save activities error:', error);
+        showToast('保存失败', 'error');
+        updateSyncStatus('error');
+      }
+    }
+
+    function updateSyncStatus(status) {
+      const dot = document.getElementById('syncDot');
+      const text = document.getElementById('syncStatus');
+      
+      dot.classList.remove('syncing');
+      
+      switch (status) {
+        case 'synced':
+          dot.style.background = '#10B981';
+          text.textContent = '已同步';
+          break;
+        case 'syncing':
+          dot.classList.add('syncing');
+          dot.style.background = '#F59E0B';
+          text.textContent = '同步中...';
+          break;
+        case 'offline':
+        case 'error':
+          dot.style.background = '#EF4444';
+          text.textContent = '离线';
+          break;
+      }
+    }
+
+    // ============ Render Functions ============
+    function updateDashboard() {
+      const total = inventory.length;
+      const stock = inventory.reduce((s, i) => s + (i.quantity || 0), 0);
+      const value = inventory.reduce((s, i) => s + ((i.price || 0) * (i.quantity || 0)), 0);
+      const totalBudget = activityRecords.reduce((s, a) => s + calculateActivityTotal(a), 0);
+      
+      document.getElementById('dash-total').textContent = total;
+      document.getElementById('dash-stock').textContent = stock;
+      document.getElementById('dash-value').textContent = '¥' + value.toLocaleString();
+      document.getElementById('dash-budget').textContent = '¥' + totalBudget.toLocaleString();
+    }
+
+    function renderInventory() {
+      const search = document.getElementById('inventorySearch').value.toLowerCase();
+      const category = document.getElementById('categoryFilter').value;
+      
+      // Update category filter options
+      const select = document.getElementById('categoryFilter');
+      if (select.options.length <= 1) {
+        systemConfig.categories.forEach(cat => {
+          const opt = document.createElement('option');
+          opt.value = cat;
+          opt.textContent = cat;
+          select.appendChild(opt);
+        });
+      }
+      
+      let filtered = inventory.filter(item => {
+        const matchSearch = !search || 
+          item.code?.toLowerCase().includes(search) || 
+          item.name?.toLowerCase().includes(search);
+        const matchCategory = !category || item.category === category;
+        return matchSearch && matchCategory;
+      });
+      
+      const tbody = document.getElementById('inventoryTable');
+      tbody.innerHTML = filtered.map((item, idx) => `
+        <tr>
+          <td style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">${item.code || '-'}</td>
+          <td>${item.name || '-'}</td>
+          <td>${item.unit || '-'}</td>
+          <td>${item.spec || '-'}</td>
+          <td><span class="status-badge status-draft">${item.category || '-'}</span></td>
+          <td style="font-family: 'JetBrains Mono', monospace; color: var(--accent);">¥${(item.price || 0).toFixed(2)}</td>
+          <td style="font-family: 'JetBrains Mono', monospace;">${item.quantity || 0}</td>
+          <td>
+            <button class="btn btn-sm btn-secondary" onclick="editInventoryItem(${idx})">编辑</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderActivityList() {
+      const search = document.getElementById('activitySearch').value.toLowerCase();
+      
+      let filtered = activityRecords.filter(a => {
+        return !search || 
+          a.activityCode?.toLowerCase().includes(search) || 
+          a.activityName?.toLowerCase().includes(search);
+      });
+      
+      const container = document.getElementById('activityList');
+      container.innerHTML = filtered.map(activity => {
+        const total = calculateActivityTotal(activity);
+        const itemCount = activity.items?.length || 0;
+        const statusClass = activity.status === 'finalized' ? 'status-finalized' : 'status-draft';
+        const statusText = activity.status === 'finalized' ? '已定稿' : '草稿';
+        
+        return `
+          <div class="activity-card" onclick="openActivityDetail('${activity._id || activity.id}')">
+            <div class="activity-card-header">
+              <div>
+                <div class="activity-card-title">${activity.activityName || '未命名活动'}</div>
+                <div class="activity-card-code">${activity.activityCode || '-'}</div>
+              </div>
+              <span class="status-badge ${statusClass}">${statusText}</span>
+            </div>
+            <div class="activity-card-meta">
+              <span>📦 ${itemCount} 种物料</span>
+              <span>🕐 ${activity.updateTime ? new Date(activity.updateTime).toLocaleDateString() : '-'}</span>
+              ${activity.finalizedTime ? `<span>✓ 定稿于 ${new Date(activity.finalizedTime).toLocaleDateString()}</span>` : ''}
+            </div>
+            <div class="activity-card-footer">
+              <div class="activity-card-budget">¥${total.toLocaleString()}</div>
+              <button class="btn btn-sm btn-purple" onclick="event.stopPropagation(); editActivity('${activity._id || activity.id}')">编辑</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function calculateActivityTotal(activity) {
+      if (!activity.items) return 0;
+      return activity.items.reduce((sum, item) => {
+        return sum + (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 0);
+      }, 0);
+    }
+
+    // ============ Admin Panel ============
+    async function loadAdminPanel() {
+      if (currentUserRole !== 'admin') {
+        showToast('无权限访问', 'error');
+        navigateTo('dashboard');
+        return;
+      }
+      
+      document.getElementById('admin-users').textContent = users.length;
+      document.getElementById('admin-inventory').textContent = inventory.length;
+      document.getElementById('admin-activities').textContent = activityRecords.length;
+      
+      const userList = document.getElementById('userList');
+      userList.innerHTML = users.map(user => `
+        <div class="user-item">
+          <div class="user-item-info">
+            <div class="user-item-avatar">${(user.name || 'U').charAt(0)}</div>
+            <div>
+              <div class="user-item-name">${user.name || '未知用户'}</div>
+              <div class="user-item-role">${user.email || '-'}</div>
+            </div>
+          </div>
+          <select class="role-select" onchange="changeUserRole('${user._id}', this.value)">
+            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>管理员</option>
+            <option value="user" ${user.role === 'user' ? 'selected' : ''}>普通用户</option>
+            <option value="readonly" ${user.role === 'readonly' ? 'selected' : ''}>只读</option>
+          </select>
+        </div>
+      `).join('');
+    }
+
+    async function changeUserRole(userId, newRole) {
+      try {
+        db = app.database();
+        await db.collection('users').doc(userId).update({
+          role: newRole
+        });
+        showToast('权限已更新', 'success');
+      } catch (error) {
+        showToast('更新失败', 'error');
+      }
+    }
+
+    // ============ Logo Functions ============
+    function triggerLogoUpload() {
+      document.getElementById('logoUploadInput').click();
+    }
+
+    async function handleLogoUpload(input) {
+      const file = input.files[0];
+      if (!file) return;
+      
+      if (!file.type.startsWith('image/')) {
+        showToast('请上传图片文件', 'error');
+        return;
+      }
+      
+      if (file.size > 2 * 1024 * 1024) {
+        showToast('图片大小不能超过2MB', 'error');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        systemConfig.logoIcon = e.target.result;
+        systemConfig.logoEmoji = null;
+        
+        // Save to cloud
+        try {
+          db = app.database();
+          if (systemConfig._id) {
+            await db.collection('config').doc(systemConfig._id).update(systemConfig);
+          } else {
+            const res = await db.collection('config').add({ data: systemConfig });
+            systemConfig._id = res.id;
+          }
+        } catch (error) {
+          console.error('Save logo error:', error);
+        }
+        
+        renderLogo();
+        showToast('Logo已更新', 'success');
+      };
+      reader.readAsDataURL(file);
+      input.value = '';
+    }
+
+    function renderLogo() {
+      const logoImage = document.getElementById('logoImage');
+      const logoEmoji = document.getElementById('logoEmoji');
+      
+      if (systemConfig.logoIcon) {
+        logoImage.src = systemConfig.logoIcon;
+        logoImage.style.display = 'block';
+        logoEmoji.style.display = 'none';
+      } else {
+        logoImage.style.display = 'none';
+        logoEmoji.style.display = 'block';
+        logoEmoji.textContent = systemConfig.logoEmoji || '📦';
+      }
+    }
+
+    // ============ Init App ============
+    function initApp() {
+      loadData().then(() => {
+        updateDashboard();
+        renderInventory();
+        renderActivityList();
+        renderLogo();
+      });
+      
+      // Setup search listeners
+      document.getElementById('inventorySearch').addEventListener('input', renderInventory);
+      document.getElementById('categoryFilter').addEventListener('change', renderInventory);
+      document.getElementById('activitySearch').addEventListener('input', renderActivityList);
+    }
+
+    // ============ Placeholder Functions ============
+    function openAddItemModal() { showToast('功能开发中', 'info'); }
+    function exportInventory() { showToast('功能开发中', 'info'); }
+    function openNewActivityModal() { showToast('功能开发中', 'info'); }
+    function openActivityDetail(id) { showToast('功能开发中', 'info'); }
+    function editActivity(id) { showToast('功能开发中', 'info'); }
+    function editInventoryItem(idx) { showToast('功能开发中', 'info'); }
+
+    // ============ Start ============
+    initCloudBase();
+  </script>
+</body>
+</html>
